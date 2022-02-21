@@ -24,6 +24,8 @@ ggplot(df, aes(x=x1, y=x2, color=y)) + geom_point()
 logit_mod <- glm(y ~ ns(x1,2)*ns(x2,2), data=df, family=binomial)
 ## p-values are unreliable due to perfect separation
 
+gam::plot.Gam(logit_mod)
+
 summary(logit_mod)
 
 ### decision boundary ------
