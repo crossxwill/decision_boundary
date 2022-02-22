@@ -1,5 +1,6 @@
 library(tidyverse)
 library(splines)
+library(caret)
 
 
 ### simulate data ---------
@@ -41,3 +42,41 @@ ggplot(df, aes(x=x1, y=x2, color=y)) + geom_point() +
   geom_contour(data=X_complete, aes(x=x1, y=x2, z=logit_pred),
                inherit.aes = FALSE, breaks=c(0.5))
 
+### fit a tree model ------
+
+df_ml <- df
+
+df_ml$y <- ifelse(df$y == 1, "Green", "Red")
+
+
+fitControl <- trainControl(method = "cv",
+                           number = 5,
+                           ## repeats = 10,
+                           ## Estimate class probabilities
+                           classProbs = TRUE,
+                           ## Evaluate performance using 
+                           ## the following function
+                           summaryFunction = twoClassSummary)
+
+set.seed(2014)
+
+tree_mod <- train(y ~ x1 + x2, data=df_ml, method = "rpart",
+                  metric="ROC", trControl = fitControl, 
+                  tuneGrid=data.frame(cp=seq(0,0.1,length.out=100))
+                  ,control=rpart::rpart.control(minsplit=1, minbucket=1)
+                  )
+
+plot(tree_mod)
+
+rpart.plot::prp(tree_mod$finalModel)
+
+### decision boundary ------
+
+X_complete$tree_pred <- predict(tree_mod, newdata=X_complete, type="prob")[,1]
+
+ggplot(df, aes(x=x1, y=x2, color=y)) + geom_point() +
+  geom_contour(data=X_complete, aes(x=x1, y=x2, z=logit_pred, color="Logit"),
+               inherit.aes = FALSE, breaks=c(0.5)) +
+  geom_contour(data=X_complete, aes(x=x1, y=x2, z=tree_pred, color="rpart"),
+               inherit.aes=FALSE, breaks=c(0.5), linetype=2, size=1) +
+  theme_bw()
