@@ -7,8 +7,8 @@ library(caret)
 
 set.seed(1)
 
-x1 <- runif(300, 0, 10)
-x2 <- runif(300, 0, 10)
+x1 <- runif(600, 0, 10)
+x2 <- runif(600, 0, 10)
 
 y <- as.factor(ifelse(sqrt((x1-5)^2 + (x2-5)^2) < 4.5, 1, 0))
 
